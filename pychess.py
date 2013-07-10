@@ -4,6 +4,8 @@ from math import floor
 row='12345678'
 col='abcdefgh'
 
+board_margin=(0,1,2,3,4,5,6,7,8,15,16,23,24,31,32,39,40,47,48,55,56,63)
+
 king=(1,-1,7,8,9,-7,-8,-9)
 rook=(1,-1,8,-8)
 bishop=(7,9,-7,-9)
@@ -75,7 +77,10 @@ def propogate(src,des,direction,board):
         if mid == des:
             return True
         elif board[mid] == '.' :
-            continue
+            if mid in board_margin:
+                return False
+            else:
+                continue
         else :
             return False
 def legal_king(src,des,board):
@@ -105,7 +110,23 @@ def legal_rook(src,des,board):
             else :
                 return False
     return propogate(src,des,direction,b)
-#def legal_bishop(src,des,board):
+def legal_bishop(src,des,board):
+
+    if src > des:
+        if (src-des)%7 == 0:
+            direction = -7
+        elif (src-des)%9 == 0:
+            direction = -9
+        else:
+            return False
+    else:
+        if (des-src)%7 == 0:
+            direction = 7
+        elif (des-src)%9 == 0:
+            direction = 9
+        else:
+            return False
+    return propogate(src,des,direction,b)
     
         
 
@@ -118,11 +139,13 @@ def is_legal(src,des,board):      # check if move src -> des is legal in board
         elif board[des].isupper():
             return False
 
-        
-    if board[src].lower() == 'k':
+    p=board[src].lower()   
+    if p == 'k':
         return legal_king(src,des,board)
-    elif board[src].lower() == 'r':
+    elif p == 'r':
         return legal_rook(src,des,board)
+    elif p == 'b':
+        return legal_bishop(src,des,board)
     return False
 
 def get_legal(color,board):    # Get List of Legal moves for that color
@@ -176,4 +199,6 @@ def main():
 b=empty_board()
 b=place(35,'r',b)
 b=place(36,'K',b)
+b=place(50,'b',b)
 print_board(b)
+get_legal(0,b)
