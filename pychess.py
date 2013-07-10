@@ -4,6 +4,15 @@ import random
 import os
 import sys
 
+
+
+human=1 #white for human
+comp=0  #black for comp
+	
+first=1 #First move- white
+second=0 #Second move- black
+
+
 row='12345678'
 col='abcdefgh'
 
@@ -68,25 +77,6 @@ def print_board(board):
     print '    a','b','c','d','e','f','g','h'
 
     
-def conv(notation):   # converts human readable move to computer index
-    global col
-    return  (9-int(notation[1]))*8+col.index(notation[0])-8
-
-def get_move(color):     #Get move for the given color
-
-    global row,col
-    
-    player = 'white'
-    if color == 0:
-        player = 'black'
-    raw_string=raw_input(player + "Enter move separated by hyphen(eg:e2-e4): ")
-    src=raw_string.split('-')[0]
-    des=raw_string.split('-')[1]
-
-    if (src[0] in col) and (src[1] in row) and (des[0] in col) and (des[1] in row):   
-        return (conv(src),conv(des))
-    return 0
-
 
 def rm(i,b):         # A debug method to remove a piece
     b[i]='.'
@@ -273,10 +263,36 @@ def get_legal(color,board):    # Get List of Legal moves for that color
 def check_legal(move,legal_list):
     if move in legal_list:
         return True
+    print "Illegal move"
     return False
     
 
 # ----------------- End Of Legal Functions --------------
+
+# ------------------ Human Functions --------------------
+
+def conv(notation):   # converts human readable move to computer index
+    global col
+    return  (9-int(notation[1]))*8+col.index(notation[0])-8
+
+def get_move(color,legal_moves):     #Get move for the given color
+
+    global row,col
+    
+    player = 'White'
+    if color == 0:
+        player = 'Black'
+    if color == comp:
+        return comp_move(legal_moves)
+    raw_string=raw_input(player + ", enter move separated by hyphen(eg:e2-e4): ")
+    src=raw_string.split('-')[0]
+    des=raw_string.split('-')[1]
+
+    if (src[0] in col) and (src[1] in row) and (des[0] in col) and (des[1] in row):   
+        return (conv(src),conv(des))
+    return 0
+
+
 
 # --------------- Computer Functions ----------------
 def comp_move(legal_moves):
@@ -299,39 +315,58 @@ def update(move,board):
     return board
     
 def play(board):
-	human=1 #white for human
-	comp=0  #black for comp
+    global human,comp,first,second
 	
-	first=human #First move- human
-	second=comp #Second move- comp
+    legal=0
+
+    #First Move
+    legal_moves=get_legal(first,board)
+    while not legal:
+        move=get_move(first,legal_moves)
+        if first == human:
+            print "Human First"
+            legal=check_legal(move,legal_moves)
+        else:
+            legal = 1
+    board=update(move,board)
+    os.system('clear')
+    print_board(board)
+    if check_over(board):
+        sys.exit(0) 
+    #Second Move
+    legal_moves=get_legal(second,board)
+    legal=0
+    while not legal:
+        move=get_move(second,legal_moves)
+        if second == comp:
+            legal = 1
+        else :
+            legal = check_legal(move,legal_moves)
+    board=update(move,board)
+    os.system('clear')
+    print_board(board)
+    if check_over(board):
+        sys.exit(0) 
 	
-	legal=0
-	legal_moves=get_legal(first,board)
-	while not legal:
-		move=get_move(first)
-		legal=check_legal(move,legal_moves)
-	board=update(move,board)
-	if check_over(board):
-            os.system('clear')
-            print_board(board)
-            sys.exit(0) 
-	# comp move
-	legal_moves=get_legal(second,board)
-	move=comp_move(legal_moves)
-	board=update(move,board)
-	os.system('clear')
-	print_board(board)
-	
-	return board
+    return board
 
 def main():
-	board=init_board()
-	os.system('clear')
-	print "Chess --------------by surya \n\n"
-	print_board(board)
-	over=False
-	while not over:
-		board=play(board)
-		over=check_over(board)
-main()
+    global human,comp
+    board=init_board()
+    os.system('clear')
+    print "Chess --------------by surya \n\n"
+    print_board(board)
 
+    ## Get Human And Computer Players' Colors "
+    c=raw_input("Chooce Your Color (w/b) : ")
+    if 'b' in c:
+        human = 0
+        comp = 1
+    os.system('clear')
+	
+    while True:
+    	board=play(board)
+		
+
+if '__name__' == main():
+    main()
