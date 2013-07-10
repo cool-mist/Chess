@@ -166,6 +166,9 @@ def is_legal(src,des,board):      # check if move src -> des is legal in board
         return legal_bishop(src,des,board)
     elif p == 'n':
         return legal_knight(src,des,board)
+    elif p == 'q':
+        if legal_rook(src,des,board)+legal_bishop(src,des,board):
+            return True
     return False
 
 def get_legal(color,board):    # Get List of Legal moves for that color
@@ -220,6 +223,6 @@ b=empty_board()
 b=place(35,'r',b)
 b=place(36,'K',b)
 b=place(50,'b',b)
-b=place(63,'N',b)
+b=place(43,'Q',b)
 print_board(b)
 print get_legal(1,b)
