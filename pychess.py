@@ -1,5 +1,8 @@
 from math import ceil
 from math import floor
+import random
+import os
+import sys
 
 row='12345678'
 col='abcdefgh'
@@ -10,6 +13,34 @@ second_margin=(9,10,11,12,13,14,17,22,25,30,33,38,41,46,49,50,51,52,53,54)
 king=(1,-1,7,8,9,-7,-8,-9)
 rook=(1,-1,8,-8)
 bishop=(7,9,-7,-9)
+
+def print_i(p):
+    if p == 'k':
+        print u"\u265A",
+    elif p=='q':
+        print u"\u265B",
+    elif p=='r':
+        print u"\u265C",
+    elif p=='b':
+        print u"\u265D",
+    elif p=='n':
+        print u"\u265E",
+    elif p=='p':
+        print u"\u265F",
+    elif p=='K':
+        print u"\u2654",
+    elif p=='Q':
+        print u"\u2655",
+    elif p=='R':
+        print u"\u2656",
+    elif p=='B':
+        print u"\u2657",
+    elif p=='N':
+        print u"\u2658",
+    elif p=='P':
+        print u"\u2659",
+    elif p=='.':
+        print '.',
 
 def empty_board():
     board=list('.'*64)
@@ -28,7 +59,7 @@ def print_board(board):
     for i in range(8):
         print r[7-i]+' |',
         for j in range(8):
-            print board[8*i+j],
+            print_i(board[8*i+j])
         print '|'
     print '  +',
     for i in range(8):
@@ -48,7 +79,7 @@ def get_move(color):     #Get move for the given color
     player = 'white'
     if color == 0:
         player = 'black'
-    raw_string=raw_input((player,"Enter move : "))
+    raw_string=raw_input(player + "Enter move separated by hyphen(eg:e2-e4): ")
     src=raw_string.split('-')[0]
     des=raw_string.split('-')[1]
 
@@ -65,6 +96,8 @@ def place(i,p,b):    # A debug function to place a piece
     return b
 def roundto(x,n,s):
     if s=='>':
+        if x%n ==0:
+            return x+n
         return int(ceil(x/float(n))*n)
     else:
         return int(floor(x/float(n))*n)
@@ -127,7 +160,7 @@ def legal_rook(src,des,board):
                 direction = -8
             else :
                 return False
-    return propogate(src,des,direction,b)
+    return propogate(src,des,direction,board)
 def legal_bishop(src,des,board):
 
     if src > des:
@@ -144,10 +177,55 @@ def legal_bishop(src,des,board):
             direction = 9
         else:
             return False
-    return propogate(src,des,direction,b)
-    
-        
+    return propogate(src,des,direction,board)
 
+def legal_pawn(src,des,board):
+
+    # No side Movements
+    
+    if des in range(roundto(src,8,'<'),roundto(src,8,'>')+1):
+        return False
+    irow = src/8
+    icol = src%8
+    frow = des/8
+    fcol = des%8
+
+    # Not  more than 2 steps       
+    if abs(frow-irow) > 2:
+        return False
+    if abs(fcol-icol)>1:
+        return False
+    color='white'
+    if (board[src].islower()) :
+        color='black'
+
+    if color == 'white':
+        if src < des:
+            return False
+        if (abs(fcol - icol) == 1) and (abs(frow-irow) == 1) :
+            if board[des].islower():
+                return True
+        elif (abs(frow - irow) == 1) and (abs(fcol-icol) == 0):
+            return True
+        elif (abs(frow - irow)==2) and (abs(fcol-icol) == 0) :
+            if src in range(48,56):
+                return True
+    else:
+        if src > des:
+            return False
+        if (abs(fcol - icol) == 1) and (abs(frow-irow) == 1) :
+            if board[des].isupper():
+                return True
+        elif (abs(frow - irow) == 1) and (abs(fcol-icol) == 0):
+            return True
+
+        elif (abs(frow - irow)==2) and (abs(fcol-icol) == 0) :
+            if src in range(8,16):
+                return True
+        
+    return False    
+        
+        
 def is_legal(src,des,board):      # check if move src -> des is legal in board 
 
     if not board[des] == '.':
@@ -169,6 +247,8 @@ def is_legal(src,des,board):      # check if move src -> des is legal in board
     elif p == 'q':
         if legal_rook(src,des,board)+legal_bishop(src,des,board):
             return True
+    elif p == 'p':
+        return legal_pawn(src,des,board)
     return False
 
 def get_legal(color,board):    # Get List of Legal moves for that color
@@ -176,13 +256,13 @@ def get_legal(color,board):    # Get List of Legal moves for that color
     legal_list=[]
     piece_list=[]
     if color == 1:
-        for i in enumerate(board):
-            if i[1].isupper():
-                piece_list.append(i[0])
+        for i in range(64):
+            if board[i].isupper():
+                piece_list.append(i)
     else:
-        for i in enumerate(board):
-            if i[1].islower():
-                piece_list.append(i[0])
+        for i in range(64):
+            if board[i].islower():
+                piece_list.append(i)
         
     for src in piece_list:
         for des in range(64):
@@ -190,8 +270,34 @@ def get_legal(color,board):    # Get List of Legal moves for that color
                 legal_list.append((src,des))
     return legal_list
 
+def check_legal(move,legal_list):
+    if move in legal_list:
+        return True
+    return False
+    
 
-# ----------------- End Of Legal Functions --------------   
+# ----------------- End Of Legal Functions --------------
+
+# --------------- Computer Functions ----------------
+def comp_move(legal_moves):
+    return legal_moves[int(ceil(random.random()*10))]
+
+# --------------- End Of Comp Functions ----------------
+def check_over(board):
+    if 'k' not in board:
+        print "White wins.. Game Over"
+        return 1
+    if 'K' not in board:
+        print "Black Wins.. Game Over"
+        return 1
+    return 0
+def update(move,board):
+    src=move[0]
+    des=move[1]
+    board[des]=board[src]
+    board[src]='.'
+    return board
+    
 def play(board):
 	human=1 #white for human
 	comp=0  #black for comp
@@ -205,24 +311,27 @@ def play(board):
 		move=get_move(first)
 		legal=check_legal(move,legal_moves)
 	board=update(move,board)
-	
+	if check_over(board):
+            os.system('clear')
+            print_board(board)
+            sys.exit(0) 
+	# comp move
 	legal_moves=get_legal(second,board)
-	move=comp_move(move,legal_moves)
+	move=comp_move(legal_moves)
 	board=update(move,board)
+	os.system('clear')
+	print_board(board)
 	
 	return board
 
 def main():
 	board=init_board()
+	os.system('clear')
+	print "Chess --------------by surya \n\n"
 	print_board(board)
 	over=False
 	while not over:
 		board=play(board)
-#main()
-b=empty_board()
-b=place(35,'r',b)
-b=place(36,'K',b)
-b=place(50,'b',b)
-b=place(43,'Q',b)
-print_board(b)
-print get_legal(1,b)
+		over=check_over(board)
+main()
+
