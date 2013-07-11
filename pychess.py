@@ -24,29 +24,29 @@ rook=(1,-1,8,-8)
 bishop=(7,9,-7,-9)
 
 def print_i(p):
-    if p == 'k':
+    if p == 'K':
         print u"\u265A",
-    elif p=='q':
-        print u"\u265B",
-    elif p=='r':
-        print u"\u265C",
-    elif p=='b':
-        print u"\u265D",
-    elif p=='n':
-        print u"\u265E",
-    elif p=='p':
-        print u"\u265F",
-    elif p=='K':
-        print u"\u2654",
     elif p=='Q':
-        print u"\u2655",
+        print u"\u265B",
     elif p=='R':
-        print u"\u2656",
+        print u"\u265C",
     elif p=='B':
-        print u"\u2657",
+        print u"\u265D",
     elif p=='N':
-        print u"\u2658",
+        print u"\u265E",
     elif p=='P':
+        print u"\u265F",
+    elif p=='k':
+        print u"\u2654",
+    elif p=='q':
+        print u"\u2655",
+    elif p=='r':
+        print u"\u2656",
+    elif p=='b':
+        print u"\u2657",
+    elif p=='n':
+        print u"\u2658",
+    elif p=='p':
         print u"\u2659",
     elif p=='.':
         print '.',
@@ -61,19 +61,13 @@ def init_board():
 
 def print_board(board):
     r='12345678'
-    print '  +',
+    print u" \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510"
     for i in range(8):
-        print '-',
-    print '+'
-    for i in range(8):
-        print r[7-i]+' |',
+        print r[7-i]+u"\u2502",
         for j in range(8):
             print_i(board[8*i+j])
-        print '|'
-    print '  +',
-    for i in range(8):
-        print '-',
-    print '+'
+        print u"\u2502"
+    print u" \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
     print '    a','b','c','d','e','f','g','h'
 
     
@@ -196,10 +190,14 @@ def legal_pawn(src,des,board):
             if board[des].islower():
                 return True
         elif (abs(frow - irow) == 1) and (abs(fcol-icol) == 0):
-            return True
+            if board[des]=='.':
+                return True
+            return False
         elif (abs(frow - irow)==2) and (abs(fcol-icol) == 0) :
             if src in range(48,56):
-                return True
+                if board[des]=='.':
+                    return True
+                return False
     else:
         if src > des:
             return False
@@ -207,11 +205,15 @@ def legal_pawn(src,des,board):
             if board[des].isupper():
                 return True
         elif (abs(frow - irow) == 1) and (abs(fcol-icol) == 0):
-            return True
+            if board[des]=='.':
+                return True
+            return False
 
         elif (abs(frow - irow)==2) and (abs(fcol-icol) == 0) :
             if src in range(8,16):
-                return True
+                if board[des]=='.':
+                    return True
+                return False
         
     return False    
         
@@ -275,7 +277,7 @@ def conv(notation):   # converts human readable move to computer index
     global col
     return  (9-int(notation[1]))*8+col.index(notation[0])-8
 
-def get_move(color,legal_moves):     #Get move for the given color
+def get_move(color,legal_moves,board):     #Get move for the given color
 
     global row,col
     
@@ -288,14 +290,19 @@ def get_move(color,legal_moves):     #Get move for the given color
     src=raw_string.split('-')[0]
     des=raw_string.split('-')[1]
 
-    if (src[0] in col) and (src[1] in row) and (des[0] in col) and (des[1] in row):   
-        return (conv(src),conv(des))
+    if (src[0] in col) and (src[1] in row) and (des[0] in col) and (des[1] in row):
+        src,des=conv(src),conv(des)
+        if (src,des) in legal_moves:
+            return (src,des)
     return 0
 
 
 
 # --------------- Computer Functions ----------------
 def comp_move(legal_moves):
+    #best_moves=[]
+    #b=board
+    #for move in
     return legal_moves[int(ceil(random.random()*10))]
 
 # --------------- End Of Comp Functions ----------------
@@ -317,31 +324,27 @@ def update(move,board):
 def play(board):
     global human,comp,first,second
 	
-    legal=0
-
+    
+    os.system('clear')
+    print_board(board)
     #First Move
+    move=0
     legal_moves=get_legal(first,board)
-    while not legal:
-        move=get_move(first,legal_moves)
-        if first == human:
-            print "Human First"
-            legal=check_legal(move,legal_moves)
-        else:
-            legal = 1
+    while not move:
+        move=get_move(first,legal_moves,board)
+        
     board=update(move,board)
     os.system('clear')
     print_board(board)
     if check_over(board):
-        sys.exit(0) 
+        sys.exit(0)
+        
     #Second Move
+    move = 0
     legal_moves=get_legal(second,board)
-    legal=0
-    while not legal:
-        move=get_move(second,legal_moves)
-        if second == comp:
-            legal = 1
-        else :
-            legal = check_legal(move,legal_moves)
+    while not move:
+        move=get_move(second,legal_moves,board)
+        
     board=update(move,board)
     os.system('clear')
     print_board(board)
@@ -362,7 +365,6 @@ def main():
     if 'b' in c:
         human = 0
         comp = 1
-    os.system('clear')
 	
     while True:
     	board=play(board)
