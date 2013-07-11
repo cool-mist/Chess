@@ -1,5 +1,6 @@
 from math import ceil
 from math import floor
+from operator import itemgetter
 import random
 import os
 import sys
@@ -18,6 +19,8 @@ col='abcdefgh'
 
 board_margin=(0,1,2,3,4,5,6,7,8,15,16,23,24,31,32,39,40,47,48,55,56,57,58,59,60,61,62,63)
 second_margin=(9,10,11,12,13,14,17,22,25,30,33,38,41,46,49,50,51,52,53,54)
+third_margin=(18,19,20,21,26,29,34,37,42,43,44,45)
+fourth_margin=(27,28,35,36)
 
 king=(1,-1,7,8,9,-7,-8,-9)
 rook=(1,-1,8,-8)
@@ -68,7 +71,7 @@ def print_board(board):
             print_i(board[8*i+j])
         print u"\u2502"
     print u" \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"
-    print '    a','b','c','d','e','f','g','h'
+    print '   a','b','c','d','e','f','g','h'
 
     
 
@@ -95,8 +98,9 @@ def propogate(src,des,direction,board):
         if mid == des:
             return True
         elif board[mid] == '.' :
-            if mid in board_margin:
-                return False
+            if 'b' in board[src].lower() or 'q' in board[src].lower(): 
+                if mid in board_margin:
+                    return False
             else:
                 continue
         else :
@@ -167,7 +171,7 @@ def legal_pawn(src,des,board):
 
     # No side Movements
     
-    if des in range(roundto(src,8,'<'),roundto(src,8,'>')+1):
+    if des in range(roundto(src,8,'<'),roundto(src,8,'>')):
         return False
     irow = src/8
     icol = src%8
@@ -285,7 +289,7 @@ def get_move(color,legal_moves,board):     #Get move for the given color
     if color == 0:
         player = 'Black'
     if color == comp:
-        return comp_move(legal_moves)
+        return comp_move(legal_moves,board)
     raw_string=raw_input(player + ", enter move separated by hyphen(eg:e2-e4): ")
     src=raw_string.split('-')[0]
     des=raw_string.split('-')[1]
@@ -299,11 +303,81 @@ def get_move(color,legal_moves,board):     #Get move for the given color
 
 
 # --------------- Computer Functions ----------------
-def comp_move(legal_moves):
-    #best_moves=[]
-    #b=board
-    #for move in
-    return legal_moves[int(ceil(random.random()*10))]
+def pt(i):
+    if 'k' in i:
+        pts=100
+    elif 'q' in i:
+        pts=9
+    elif 'p' in i:
+        pts=2.2
+    elif 'n' in i:
+        pts=3
+    elif 'r' in i:
+        pts=5
+    elif 'b' in i:
+        pts=3
+    elif 'K' in i:
+        pts=-100
+    elif 'Q' in i:
+        pts=-9
+    elif 'P' in i:
+        pts=-2.2
+    elif 'N' in i:
+        pts=-3
+    elif 'R' in i:
+        pts=-5
+    elif 'B' in i:
+        pts=-3
+    else:
+        pts=0
+    return pts
+def evaluate (board,color):
+    sign = 1
+    if color:
+        sign=-1
+    pts=0
+    i=0
+    for i in range(64):
+        if i in fourth_margin:
+            pts+=1.6*pt(board[i])
+        elif i in third_margin:
+            pts+=1.1*pt(board[i])
+        else:
+            pts+=pt(board[i])
+    
+    
+    return sign*pts
+        
+            
+            
+
+def comp_move(legal_moves,board):
+    best_moves=[]
+    b=[i for i in board]
+    for move in legal_moves:
+        b=update(move,b)
+        human_moves = get_legal(human,b)
+        hb=[i for i in b]
+        best_human_moves=[]
+        for human_move in human_moves:
+            hb=update(human_move,hb)
+            pts=evaluate(hb,human)
+            best_human_moves.append((human_move,pts))
+            hb=[i for i in b]
+            
+        best_human_moves=sorted(best_human_moves,key=itemgetter(1),reverse=True)
+        best_pts=best_human_moves[0][1]
+        
+        best_moves.append((move,best_pts))
+        b=[i for i in board]
+    best_moves=sorted(best_moves,key=itemgetter(1))
+    
+    
+    if len(best_moves)==1 :
+        return best_moves[0]
+    return best_moves[0][0]       
+            
+    
 
 # --------------- End Of Comp Functions ----------------
 def check_over(board):
@@ -355,10 +429,10 @@ def play(board):
 
 def main():
     global human,comp
-    board=init_board()
+    bord=init_board()
     os.system('clear')
     print "Chess --------------by surya \n\n"
-    print_board(board)
+    print_board(bord)
 
     ## Get Human And Computer Players' Colors "
     c=raw_input("Chooce Your Color (w/b) : ")
@@ -367,7 +441,7 @@ def main():
         comp = 1
 	
     while True:
-    	board=play(board)
+    	bord=play(bord)
 		
 
 if '__name__' == main():
