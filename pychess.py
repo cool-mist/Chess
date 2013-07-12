@@ -5,7 +5,11 @@ import random
 import os
 import sys
 
-
+def clear():
+	if os.name == 'nt':
+		os.system('cls')
+	else:
+		os.system('clear')
 
 human=1 #white for human
 comp=0  #black for comp
@@ -399,7 +403,7 @@ def play(board):
     global human,comp,first,second
 	
     
-    os.system('clear')
+    clear()
     print_board(board)
     #First Move
     move=0
@@ -408,7 +412,7 @@ def play(board):
         move=get_move(first,legal_moves,board)
         
     board=update(move,board)
-    os.system('clear')
+    clear()
     print_board(board)
     if check_over(board):
         sys.exit(0)
@@ -420,7 +424,7 @@ def play(board):
         move=get_move(second,legal_moves,board)
         
     board=update(move,board)
-    os.system('clear')
+    clear()
     print_board(board)
     if check_over(board):
         sys.exit(0) 
@@ -430,7 +434,7 @@ def play(board):
 def main():
     global human,comp
     bord=init_board()
-    os.system('clear')
+    clear()
     print "Chess --------------by surya \n\n"
     print_board(bord)
 
